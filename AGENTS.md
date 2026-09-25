@@ -1,44 +1,27 @@
-# Cut-Me-Own Retail
+# Cut-Me-Own Retail: working agreement
 
-## Project
-
-This repository contains transformations used by the analytics team.
+This repository contains a small analytics reporting application for fictional retail data.
 
 ## Development
 
-Install dependencies:
-
-pip install -r requirements.txt
-
-Run tests:
-
-pytest
-
-Run linting:
-
-ruff check .
+- Install in a virtual environment: `python -m pip install -e . -r requirements-dev.txt`
+- Run tests: `python -m unittest discover -s tests -v`
+- Run lint: `ruff check .`
+- Check formatting: `ruff format --check .`
+- Run the existing report: `python -m cmo_retail sales`
 
 ## Engineering principles
 
-- Follow existing project conventions.
-- Do not modify unrelated components.
-- Add tests for new behaviour.
-- Do not expose customer PII in logs.
-- Keep transformations deterministic.
-- Update documentation when interfaces change.
+- Follow established patterns and keep changes within the ticket's scope.
+- Add meaningful tests for new behavior and update user-facing documentation.
+- Keep transformations deterministic; avoid dependencies on the current date.
+- Source data contains customer emails. Do not expose emails or other customer PII in logs or derived reports.
+- No network services, external credentials, or production systems are required.
 
-## Workflow
+## Ticket workflow
 
-Before implementing a ticket:
-
-1. Inspect the relevant parts of the repository.
-2. Produce an implementation plan.
-3. Identify assumptions or ambiguities.
-4. Wait for approval before modifying files.
-
-After implementation:
-
-1. Run tests and static checks.
-2. Review your changes.
-3. Map evidence to the ticket acceptance criteria.
-4. Summarise remaining risks or uncertainties.
+1. Inspect the ticket, repository, tests, documentation, and CI configuration.
+2. Present a plan and identify assumptions, ambiguities, and risks.
+3. Wait for the human to approve the plan before changing files.
+4. Implement and run local checks; inspect the diff.
+5. Map each acceptance criterion to observable evidence. State what remains unverified.

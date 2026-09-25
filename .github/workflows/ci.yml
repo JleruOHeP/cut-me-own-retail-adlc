@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Install app and checks
+        run: python -m pip install -e . -r requirements-dev.txt
+      - name: Lint
+        run: ruff check .
+      - name: Check formatting
+        run: ruff format --check .
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Report smoke test
+        run: python -m cmo_retail sales --output output/daily_sales.csv

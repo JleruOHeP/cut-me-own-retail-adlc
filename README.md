@@ -33,6 +33,3 @@ The CLI writes `output/daily_sales.csv`. You may override `--customers`, `--orde
 
 Start with a clean copy of this repo, open it in ChatGPT Codex, and ask it to read `AGENTS.md` and `TICKET.md`, inspect the repo, and present a plan **without editing files yet**. Review the plan and clarify the product rule when it asks. Then let Codex implement, test, and present evidence. The ticket is intentionally incomplete on churn thresholds because these require a product decision, not a developer guess.
 
-For filming: initialize a local Git repository and commit this starter state before asking Codex to work. Create a feature branch, record each human intervention, and inspect the final diff. A remote GitHub repository is optional for local work but required if you want to show the hosted CI run. This archive is a starter snapshot; it contains no commit history and no CI run.
-
-The sample data and `.example.test` addresses are fictional. Do not connect this exercise to real customers or production credentials.

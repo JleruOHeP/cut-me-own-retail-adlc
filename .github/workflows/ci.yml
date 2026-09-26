@@ -27,3 +27,5 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Report smoke test
         run: python -m cmo_retail sales --output output/daily_sales.csv
+      - name: Churn report smoke test
+        run: python -m cmo_retail churn --as-of 2026-09-30 --output output/customer_churn_risk.csv

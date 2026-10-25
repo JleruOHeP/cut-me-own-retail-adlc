@@ -77,10 +77,18 @@ class ChurnTests(unittest.TestCase):
             self.assertEqual(path.read_text().strip(), ",".join(FIELDS))
         self.assertEqual(customer_churn([], [], AS_OF), [])
 
+    def test_only_customers_available_as_of_report_date_are_included(self):
+        customers = [customer("past", 1), customer("today", 0), customer("future", -1)]
+        orders = [order(-2, customer_id="future")]
+        rows = customer_churn(customers, orders, AS_OF)
+        self.assertEqual([row["customer_id"] for row in rows], ["past", "today"])
+        self.assertTrue(all(row["churn_risk"] == "MEDIUM" for row in rows))
+        self.assertEqual(rows, customer_churn(customers[:2], [], AS_OF))
+        self.assertEqual(customer_churn([customer(age=-1)], [], AS_OF), [])
+
     def test_invalid_data(self):
         cases = [
             ([customer(), customer()], []),
-            ([customer(age=-1)], []),
             ([customer()], [order(201)]),
             ([customer()], [order(1, customer_id="missing")]),
             ([customer()], [order(1), order(2)]),
@@ -107,9 +115,11 @@ class ChurnTests(unittest.TestCase):
             output = Path(directory) / "report.csv"
             customers.write_text(
                 "customer_id,email,joined_at\nC1,private@example.test,2026-01-01\n"
+                "C2,future@example.test,2026-10-01\n"
             )
             orders.write_text(
                 "order_id,customer_id,order_date,category,quantity,unit_price\nO1,C1,2026-09-30,Books,3,0.10\n"
+                "O2,C2,2026-10-02,Books,1,1.00\n"
             )
             command = [
                 sys.executable,
@@ -128,6 +138,10 @@ class ChurnTests(unittest.TestCase):
             result = subprocess.run(command, capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn("0.30,LOW", output.read_text())
+            with output.open(newline="") as source:
+                self.assertEqual(
+                    [row["customer_id"] for row in csv.DictReader(source)], ["C1"]
+                )
             self.assertNotIn(
                 "private@example.test",
                 result.stdout + result.stderr + output.read_text(),

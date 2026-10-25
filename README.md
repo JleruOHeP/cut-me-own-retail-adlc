@@ -31,7 +31,7 @@ python -m cmo_retail churn --as-of 2026-09-30
 
 The required `--as-of YYYY-MM-DD` selects the report date explicitly; no current-date default is used. Output defaults to `output/customer_churn.csv`. Override `--customers`, `--orders`, or `--output` as for sales. Schedule this command daily with an explicit report date when needed.
 
-The CSV contains one row per customer, sorted by `customer_id`, with these fields:
+The CSV contains one row per customer who joined on or before the report date, including customers with no purchases, sorted by `customer_id`, with these fields:
 
 | Field | Meaning |
 | --- | --- |
@@ -51,7 +51,7 @@ The CSV contains one row per customer, sorted by `customer_id`, with these field
 
 Never-purchased customers have blank recency, zero purchases, and `0.00` spend. Their label is an **activation priority**: they have no purchasing habit to lose. The existing `churn_risk` column includes both uses for this exercise. These are illustrative rule-based segments, not model predictions.
 
-Future purchases do not affect metrics or labels. A purchase exactly 90 days ago gives MEDIUM risk but falls outside the 90-day metrics window. Inputs must have unique customer and order IDs, known customer references, valid dates, positive quantities, and finite nonnegative prices. Customers joining after the report date and orders predating customer joining are rejected rather than silently dropping customers. Validation includes future order records. Invalid CLI input produces a generic error without raw source values. Derived rows exclude emails. Identical inputs and report date produce identical CSV bytes.
+Future purchases do not affect metrics or labels. A purchase exactly 90 days ago gives MEDIUM risk but falls outside the 90-day metrics window. Inputs must have unique customer and order IDs, known customer references, valid dates, positive quantities, and finite nonnegative prices. Customers joining after the report date are excluded, along with their orders, so later customer registrations do not block historical reports. Joining on the report date is included. Orders predating an included customer’s joining date are rejected. CSV parsing and ID/reference validation still apply to all source records; quantity, price, and chronology validation in the report applies to included customers, including their future orders. Invalid CLI input produces a generic error without raw source values. Derived rows exclude emails. Identical inputs and report date produce identical CSV bytes.
 
 ## Data
 

@@ -22,9 +22,10 @@ def customer_churn(
     known = {customer.customer_id: customer for customer in customers}
     if len(known) != len(customers) or any(not key.strip() for key in known):
         raise ValueError("Customer IDs must be present and unique")
-    if any(customer.joined_at > as_of for customer in customers):
-        raise ValueError("Customers cannot join after the report date")
-    history: dict[str, list[Order]] = {key: [] for key in known}
+    eligible = {
+        key: customer for key, customer in known.items() if customer.joined_at <= as_of
+    }
+    history: dict[str, list[Order]] = {key: [] for key in eligible}
     seen = set()
     for order in orders:
         if not order.order_id.strip() or order.order_id in seen:
@@ -32,6 +33,8 @@ def customer_churn(
         seen.add(order.order_id)
         if order.customer_id not in known:
             raise ValueError("Order references an unknown customer")
+        if order.customer_id not in eligible:
+            continue
         if order.order_date < known[order.customer_id].joined_at:
             raise ValueError("Order predates customer joining")
         if (
@@ -44,7 +47,7 @@ def customer_churn(
             history[order.customer_id].append(order)
 
     rows = []
-    for customer_id, customer in sorted(known.items()):
+    for customer_id, customer in sorted(eligible.items()):
         purchases = history[customer_id]
         days = (
             (as_of - max(order.order_date for order in purchases)).days

@@ -1,6 +1,6 @@
 # Cut-Me-Own Retail
 
-A small Python analytics app for a fictional retailer. It reads synthetic customers and orders, then builds a **daily category sales report**. The open task in [TICKET.md](TICKET.md) is a new customer churn risk dataset; the starter project does not implement that feature.
+A small Python analytics app for a fictional retailer. It reads synthetic customers and orders to build daily category sales and customer churn risk reports.
 
 ## Quick start
 
@@ -22,6 +22,36 @@ The CLI writes `output/daily_sales.csv`. You may override `--customers`, `--orde
 ## Current report
 
 `sales` groups orders by order date and category, then returns order count, units, gross revenue in synthetic dollars, and unique purchasing customers. Orders are linked to known customer IDs. Revenue uses decimal arithmetic. CSV output has a stable sort order and excludes customer emails.
+
+## Customer churn report
+
+```bash
+python -m cmo_retail churn --as-of 2026-09-30
+```
+
+The required `--as-of YYYY-MM-DD` selects the report date explicitly; no current-date default is used. Output defaults to `output/customer_churn.csv`. Override `--customers`, `--orders`, or `--output` as for sales. Schedule this command daily with an explicit report date when needed.
+
+The CSV contains one row per customer, sorted by `customer_id`, with these fields:
+
+| Field | Meaning |
+| --- | --- |
+| `customer_id` | Source customer identifier |
+| `days_since_last_purchase` | Calendar days since the latest purchase on or before the report date; blank if never purchased as of that date |
+| `purchases_last_90_days` | Number of order records in the 90 calendar days ending on the report date (ages 0–89 days inclusive), not units |
+| `spend_last_90_days` | Sum of quantity × unit price in that window, using decimal arithmetic and formatted to two decimal places |
+| `churn_risk` | Priority under the rules below |
+
+| Purchase history as of the report date | `churn_risk` |
+| --- | --- |
+| Last purchase 0–30 days ago | LOW |
+| Last purchase 31–90 days ago | MEDIUM |
+| Last purchase more than 90 days ago | HIGH |
+| Never purchased; joined 0–30 days ago | MEDIUM |
+| Never purchased; joined more than 30 days ago | HIGH |
+
+Never-purchased customers have blank recency, zero purchases, and `0.00` spend. Their label is an **activation priority**: they have no purchasing habit to lose. The existing `churn_risk` column includes both uses for this exercise. These are illustrative rule-based segments, not model predictions.
+
+Future purchases do not affect metrics or labels. A purchase exactly 90 days ago gives MEDIUM risk but falls outside the 90-day metrics window. Inputs must have unique customer and order IDs, known customer references, valid dates, positive quantities, and finite nonnegative prices. Customers joining after the report date and orders predating customer joining are rejected rather than silently dropping customers. Validation includes future order records. Invalid CLI input produces a generic error without raw source values. Derived rows exclude emails. Identical inputs and report date produce identical CSV bytes.
 
 ## Data
 
